@@ -1,0 +1,559 @@
+﻿@model MaleFashion.Web.Areas.Customer.Models.ProductDetailsViewModel
+@using System.Text.Json
+@using MaleFashion.Infrastructure.Extensions
+@using MaleFashion.Web.Areas.Admin.Models
+@using MaleFashion.Web.Codes
+@{
+    ViewData["Title"] = Model.Name;
+
+    var sizes = Model.Variants.Select(v => v.Size).Distinct().ToList();
+    var colors = Model.Variants.Select(v => v.Color).Distinct().ToList();
+    var effectivePrice = Model.DiscountPrice ?? Model.Price;
+    var hasDiscount = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
+
+    var variantsJson = JsonSerializer.Serialize(Model.Variants.Select(v => new
+    {
+        id = v.Id,
+        size = v.Size,
+        color = v.Color,
+        sku = v.SKU,
+        stock = v.StockQuantity
+    }));
+
+    var responseModel = TempData.Get<ResponseModel>(Constants.ResponseTempKey);
+}
+
+@section Styles {
+    <style>
+        .product__details__option__color label {
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            position: relative;
+            transition: all 0.2s ease-in-out;
+        }
+
+            .product__details__option__color label.active {
+                outline: 2px solid #111;
+                outline-offset: 2px;
+                transform: scale(1.1);
+            }
+
+        .product__details__option__color input[type="radio"],
+        .product__details__option__size input[type="radio"] {
+            display: none;
+        }
+
+        .product__details__option__size label {
+            cursor: pointer;
+            margin-right: 6px;
+        }
+
+        .sku-badge {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .review-item {
+            transition: background-color 0.2s ease;
+        }
+    </style>
+}
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>@Model.Name</h4>
+                    <div class="breadcrumb__links">
+                        <a asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a>
+                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index">Shop</a>
+                        <span>@Model.CategoryName</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+<!-- Shop Details Section Begin -->
+<section class="shop-details">
+    <div class="product__details__pic">
+        <div class="container">
+            <div class="row">
+                @if (Model.Images != null && Model.Images.Count > 0)
+                {
+                    <!-- Gallery Vertical Thumbnails -->
+                    <div class="col-lg-3 col-md-3">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tabs-main" role="tab">
+                                    <div class="product__thumb__pic set-bg" data-setbg="@Url.Content("~/uploads/products/" + Model.ImageName)"></div>
+                                </a>
+                            </li>
+                            @for (var i = 0; i < Model.Images.Count; i++)
+                            {
+                                var img = Model.Images[i];
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" href="#tabs-gallery-@i" role="tab">
+                                        <div class="product__thumb__pic set-bg" data-setbg="@Url.Content("~/uploads/products/" + img.ImageName)"></div>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <!-- Big Preview Tabs -->
+                    <div class="col-lg-6 col-md-9">
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tabs-main" role="tabpanel">
+                                <div class="product__details__pic__item">
+                                    <img src="@Url.Content("~/uploads/products/" + Model.ImageName)" alt="@Model.Name">
+                                </div>
+                            </div>
+                            @for (var i = 0; i < Model.Images.Count; i++)
+                            {
+                                var img = Model.Images[i];
+                                <div class="tab-pane" id="tabs-gallery-@i" role="tabpanel">
+                                    <div class="product__details__pic__item">
+                                        <img src="@Url.Content("~/uploads/products/" + img.ImageName)" alt="@Model.Name">
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-lg-6 col-md-9 offset-lg-3 offset-md-3">
+                        <div class="product__details__pic__item text-center">
+                            <img src="@Url.Content("~/uploads/products/" + Model.ImageName)" alt="@Model.Name" class="img-fluid rounded border">
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="product__details__content">
+        <div class="container">
+            <div class="row d-flex justify-content-center">
+                <div class="col-lg-8">
+                    <div class="product__details__text">
+                        <h4>@Model.Name</h4>
+
+                        <div class="rating">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                <i class="fa fa-star@(i <= Math.Round(Model.AverageRating) ? "" : "-o")"></i>
+                            }
+                            <span> - @Model.ReviewCount Review@(Model.ReviewCount == 1 ? "" : "s") (@Model.AverageRating.ToString("0.0"))</span>
+                        </div>
+
+                        <h3>
+                            @effectivePrice.ToString("C")
+                            @if (hasDiscount)
+                            {
+                                <span>@Model.Price.ToString("C")</span>
+                            }
+                        </h3>
+
+                        <p>@Model.Description</p>
+
+                        <!-- Add to Cart & Variant Selection Form -->
+                        <form id="add-to-cart-form" asp-area="Customer" asp-controller="Cart" asp-action="Add" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" id="productVariantId" name="productVariantId" value="" />
+
+                            <div class="product__details__option">
+                                @if (sizes.Count > 0)
+                                {
+                                    <div class="product__details__option__size">
+                                        <span>Size:</span>
+                                        @for (var i = 0; i < sizes.Count; i++)
+                                        {
+                                            var size = sizes[i];
+                                            <label class="@(i == 0 ? "active" : "")" for="size-@i">
+                                                @size
+                                                <input type="radio" name="size" id="size-@i" value="@size" data-role="size" @(i == 0 ? "checked" : "") />
+                                            </label>
+                                        }
+                                    </div>
+                                }
+
+                                @if (colors.Count > 0)
+                                {
+                                    <div class="product__details__option__color">
+                                        <span>Color:</span>
+                                        @for (var i = 0; i < colors.Count; i++)
+                                        {
+                                            var color = colors[i];
+                                            <label class="@(i == 0 ? "active" : "")" for="color-@i" style="background-color: @color.ToLowerInvariant();" title="@color">
+                                                <input type="radio" name="color" id="color-@i" value="@color" data-role="color" @(i == 0 ? "checked" : "") />
+                                            </label>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <span id="variant-sku-display" class="sku-badge me-3"></span>
+                                <span id="variant-stock-status" class="fw-semibold"></span>
+                            </div>
+
+                            <div class="product__details__cart__option">
+                                <div class="quantity">
+                                    <div class="pro-qty">
+                                        <input type="number" name="quantity" id="quantity" value="1" min="1" max="100" />
+                                    </div>
+                                </div>
+                                <button type="submit" class="primary-btn" id="add-to-cart-btn" disabled>Add to cart</button>
+                            </div>
+
+                            <div id="variant-message" class="text-danger mt-2 fw-semibold"></div>
+                        </form>
+
+                        <div class="product__details__last__option">
+                            <h5><span>Guaranteed Safe Checkout</span></h5>
+                            <img src="~/CustomerFrontend/img/shop-details/details-payment.png" alt="Payment Methods">
+                            <ul>
+                                <li><span>Brand:</span> @Model.Brand</li>
+                                <li><span>Category:</span> @Model.CategoryName</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs: Description & Reviews -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="product__details__tab">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tabs-description" role="tab">Description</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tabs-reviews" role="tab">Customer Reviews (@Model.ReviewCount)</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <!-- Description Tab -->
+                            <div class="tab-pane active" id="tabs-description" role="tabpanel">
+                                <div class="product__details__tab__content">
+                                    <p class="note">@(string.IsNullOrWhiteSpace(Model.Description) ? "No detailed description provided." : Model.Description)</p>
+                                </div>
+                            </div>
+
+                            <!-- Reviews Tab -->
+                            <div class="tab-pane" id="tabs-reviews" role="tabpanel">
+                                <div class="product__details__tab__content">
+
+                                    @* Feedback Alert Message *@
+                                    @if (responseModel != null)
+                                    {
+                                        var alertClass = responseModel.Type == ResponseTypes.Success ? "alert-success" : "alert-danger";
+                                        <div class="alert @alertClass alert-dismissible fade show" role="alert">
+                                            @responseModel.Message
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    }
+
+                                    <!-- Existing Reviews List -->
+                                    <div class="reviews-list-container">
+                                        @if (Model.Reviews == null || Model.Reviews.Count == 0)
+                                        {
+                                            <p class="note">No reviews yet — be the first to review this product.</p>
+                                        }
+                                        else
+                                        {
+                                            foreach (var review in Model.Reviews)
+                                            {
+                                                <div class="product__details__tab__content__item border-bottom pb-3 mb-3 review-item" id="review-display-@review.Id">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h5>
+                                                            @review.CustomerName
+                                                            <small class="text-muted"> — @review.CreatedAt.ToString("dd MMM yyyy")</small>
+                                                        </h5>
+
+                                                        <!-- Actions for Review Owner or Admin -->
+                                                        <div class="review-actions d-flex align-items-center">
+                                                            @if (review.IsOwner)
+                                                            {
+                                                                <button type="button" class="btn btn-sm btn-link text-primary p-0 mr-3" onclick="toggleEditReview('@review.Id')">
+                                                                    <i class="fa fa-pencil"></i> Edit
+                                                                </button>
+                                                            }
+                                                            @if (review.IsOwner || User.IsInRole("Admin"))
+                                                            {
+                                                                <form asp-area="Customer" asp-controller="Reviews" asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this review?');" class="d-inline">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="id" value="@review.Id" />
+                                                                    <input type="hidden" name="productId" value="@Model.Id" />
+                                                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                                                                        <i class="fa fa-trash"></i> Delete
+                                                                    </button>
+                                                                </form>
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="rating mb-2">
+                                                        @for (var i = 1; i <= 5; i++)
+                                                        {
+                                                            <i class="fa fa-star@(i <= review.Rating ? "" : "-o")"></i>
+                                                        }
+                                                    </div>
+
+                                                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                                    {
+                                                        <p class="mb-0 text-dark">@review.Comment</p>
+                                                    }
+                                                </div>
+
+                                                <!-- Inline Edit Form (Hidden by default) -->
+                                                @if (review.IsOwner)
+                                                {
+                                                    <div id="review-edit-@review.Id" class="border rounded p-3 mb-3 bg-light" style="display: none;">
+                                                        <h6 class="mb-3 font-weight-bold">Edit Your Review</h6>
+                                                        <form asp-area="Customer" asp-controller="Reviews" asp-action="Update" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="Id" value="@review.Id" />
+                                                            <input type="hidden" name="ProductId" value="@Model.Id" />
+
+                                                            <div class="form-group mb-2">
+                                                                <label class="form-label font-weight-bold d-block">Rating</label>
+                                                                <select name="Rating" class="form-control" style="max-width: 220px;" required>
+                                                                    <option value="5" selected="@(review.Rating == 5)">★★★★★ (5 - Excellent)</option>
+                                                                    <option value="4" selected="@(review.Rating == 4)">★★★★☆ (4 - Good)</option>
+                                                                    <option value="3" selected="@(review.Rating == 3)">★★★☆☆ (3 - Average)</option>
+                                                                    <option value="2" selected="@(review.Rating == 2)">★★☆☆☆ (2 - Poor)</option>
+                                                                    <option value="1" selected="@(review.Rating == 1)">★☆☆☆☆ (1 - Terrible)</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="form-group mb-2">
+                                                                <label class="form-label font-weight-bold">Comment</label>
+                                                                <textarea name="Comment" class="form-control" rows="3" maxlength="1000">@review.Comment</textarea>
+                                                            </div>
+
+                                                            <div class="mt-2">
+                                                                <button type="submit" class="btn btn-sm btn-dark">Update</button>
+                                                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleEditReview('@review.Id')">Cancel</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    </div>
+
+                                    <!-- Add Review Form Section -->
+                                    <div class="mt-4 pt-3 border-top">
+                                        @if (User.Identity?.IsAuthenticated == true)
+                                        {
+                                            if (!Model.HasCustomerReviewed)
+                                            {
+                                                <h5>Write a Review</h5>
+                                                <form asp-area="Customer" asp-controller="Reviews" asp-action="Add" method="post" class="mt-3">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="ProductId" value="@Model.Id" />
+
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label font-weight-bold d-block">Rating</label>
+                                                        <select name="Rating" class="form-control" style="max-width: 220px;" required>
+                                                            <option value="5">★★★★★ (5 - Excellent)</option>
+                                                            <option value="4">★★★★☆ (4 - Good)</option>
+                                                            <option value="3">★★★☆☆ (3 - Average)</option>
+                                                            <option value="2">★★☆☆☆ (2 - Poor)</option>
+                                                            <option value="1">★☆☆☆☆ (1 - Terrible)</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label font-weight-bold">Comment</label>
+                                                        <textarea name="Comment" class="form-control" rows="3" maxlength="1000" placeholder="Share your experience with this item..."></textarea>
+                                                    </div>
+
+                                                    <button type="submit" class="primary-btn">Submit Review</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <div class="alert alert-light border d-flex align-items-center mb-0">
+                                                    <i class="fa fa-check-circle text-success mr-2" style="font-size: 1.2rem;"></i>
+                                                    <span>Thank you! You have already reviewed this product. You can edit or remove your review above.</span>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p class="note mb-0">
+                                                Please <a asp-area="" asp-action="Login" asp-controller="Account" asp-route-returnUrl="@Context.Request.Path" class="text-primary font-weight-bold">Sign In</a> to write a review.
+                                            </p>
+                                        }
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Shop Details Section End -->
+<!-- Related Products Section Begin -->
+@if (Model.RelatedProducts != null && Model.RelatedProducts.Count > 0)
+{
+    <section class="related spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h3 class="related-title">Related Products</h3>
+                </div>
+            </div>
+            <div class="row">
+                @foreach (var related in Model.RelatedProducts)
+                {
+                    var relatedHasDiscount = related.DiscountPrice.HasValue && related.DiscountPrice.Value < related.Price;
+                    var relatedPrice = related.DiscountPrice ?? related.Price;
+
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="product__item @(relatedHasDiscount ? "sale" : "")">
+                            <div class="product__item__pic set-bg" data-setbg="@Url.Content("~/uploads/products/" + related.ImageName)">
+                                @if (relatedHasDiscount)
+                                {
+                                    <span class="label">Sale</span>
+                                }
+                            </div>
+                            <div class="product__item__text">
+                                <h6>
+                                    <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@related.Id">
+                                        @related.Name
+                                    </a>
+                                </h6>
+                                <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@related.Id" class="add-cart">+ View Details</a>
+                                <h5>
+                                    @relatedPrice.ToString("C")
+                                    @if (relatedHasDiscount)
+                                    {
+                                        <span>@related.Price.ToString("C")</span>
+                                    }
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+<!-- Related Products Section End -->
+@section Scripts {
+    <script>
+        // Toggle inline review editing view
+        function toggleEditReview(reviewId) {
+            const displayEl = document.getElementById(`review-display-${reviewId}`);
+            const editEl = document.getElementById(`review-edit-${reviewId}`);
+            if (editEl) {
+                const isHidden = editEl.style.display === 'none' || editEl.style.display === '';
+                editEl.style.display = isHidden ? 'block' : 'none';
+            }
+        }
+
+        (function () {
+            const isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+            const variants = @Html.Raw(variantsJson);
+
+            const addToCartForm = document.getElementById('add-to-cart-form');
+            const variantIdInput = document.getElementById('productVariantId');
+            const addToCartBtn = document.getElementById('add-to-cart-btn');
+            const messageEl = document.getElementById('variant-message');
+            const skuDisplay = document.getElementById('variant-sku-display');
+            const stockStatus = document.getElementById('variant-stock-status');
+
+            function getSelectedValue(role) {
+                const checked = document.querySelector(`input[data-role="${role}"]:checked`);
+                return checked ? checked.value : null;
+            }
+
+            function updateSelectedVariant() {
+                const selectedSize = getSelectedValue('size');
+                const selectedColor = getSelectedValue('color');
+
+                const match = variants.find(v =>
+                    (selectedSize === null || v.size.toLowerCase() === selectedSize.toLowerCase()) &&
+                    (selectedColor === null || v.color.toLowerCase() === selectedColor.toLowerCase())
+                );
+
+                if (!match) {
+                    variantIdInput.value = '';
+                    addToCartBtn.disabled = true;
+                    skuDisplay.textContent = '';
+                    stockStatus.textContent = '';
+                    messageEl.textContent = 'This combination is currently unavailable.';
+                    return;
+                }
+
+                variantIdInput.value = match.id;
+                skuDisplay.textContent = `SKU: ${match.sku}`;
+                messageEl.textContent = '';
+
+                if (match.stock <= 0) {
+                    addToCartBtn.disabled = true;
+                    stockStatus.textContent = 'Out of Stock';
+                    stockStatus.className = 'text-danger fw-semibold';
+                    messageEl.textContent = 'Sorry, this variant is currently sold out.';
+                } else if (match.stock <= 5) {
+                    addToCartBtn.disabled = false;
+                    stockStatus.textContent = `Only ${match.stock} left in stock!`;
+                    stockStatus.className = 'text-warning fw-semibold';
+                } else {
+                    addToCartBtn.disabled = false;
+                    stockStatus.textContent = 'In Stock';
+                    stockStatus.className = 'text-success fw-semibold';
+                }
+            }
+
+            // Sync visual active class when label is clicked
+            document.querySelectorAll('.product__details__option__size label, .product__details__option__color label').forEach(label => {
+                label.addEventListener('click', function () {
+                    const group = label.closest('.product__details__option__size, .product__details__option__color');
+                    if (group) {
+                        group.querySelectorAll('label').forEach(l => l.classList.remove('active'));
+                        label.classList.add('active');
+                    }
+                    const radio = label.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        updateSelectedVariant();
+                    }
+                });
+            });
+
+                    if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function (e) {
+                if (!isAuthenticated) {
+                    e.preventDefault();
+                    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = `/Account/Login?returnUrl=${returnUrl}`;
+                }
+            });
+        }
+
+            if (window.location.hash === '#tabs-reviews') {
+                $('a[href="#tabs-reviews"]').tab('show');
+            }
+
+            updateSelectedVariant();
+        })();
+    </script>
+}

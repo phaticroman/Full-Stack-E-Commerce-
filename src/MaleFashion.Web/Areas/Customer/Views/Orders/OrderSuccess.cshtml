@@ -1,0 +1,36 @@
+﻿@model MaleFashion.Application.DTOs.OrderDto?
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<section class="checkout spad text-center">
+    <div class="container py-5">
+        <div class="mb-4">
+            <i class="fa fa-check-circle fa-5x text-success"></i>
+        </div>
+        <h2 class="mb-3">Thank you for your order!</h2>
+        
+        @if (Model != null)
+        {
+            <p class="lead text-dark">
+                Order ID: <strong>#@Model.Id.ToString()[..8].ToUpper()</strong>
+            </p>
+            <p class="text-muted">
+                We have sent an order confirmation to <strong>@Model.ShippingEmail</strong>.
+            </p>
+            <div class="my-3">
+                <span class="badge badge-success p-2">Status: @Model.Status</span>
+                <span class="badge badge-dark p-2 ms-2">Total Amount: @Model.Total.ToString("C")</span>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">Your order has been placed successfully and is being processed.</p>
+        }
+
+        <div class="mt-4 pt-3">
+            <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn me-2">Continue Shopping</a>
+            <a asp-area="Customer" asp-controller="Orders" asp-action="Index" class="btn btn-outline-dark">View My Orders</a>
+        </div>
+    </div>
+</section>

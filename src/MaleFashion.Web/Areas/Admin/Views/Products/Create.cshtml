@@ -1,0 +1,293 @@
+﻿@model MaleFashion.Web.Areas.Admin.Models.ProductCreateModel
+@{
+    ViewData["Title"] = "Add Product";
+}
+
+@section Styles {
+    <style>
+        .variant-table th, .variant-table td {
+            vertical-align: middle;
+        }
+    </style>
+}
+
+<div class="content-wrapper">
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <div class="row mb-6 gy-6">
+            <div class="col-xxl">
+                <partial name="_ResponsePartial" />
+
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0">Add Product</h5>
+                        <small class="text-body-secondary float-end">Product details, images &amp; variants</small>
+                    </div>
+                    <div class="card-body">
+
+                        <form id="product-create-form" asp-area="Admin" asp-controller="Products" asp-action="Create" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <!-- Hidden field containing the serialized variants JSON array -->
+                            <input type="hidden" asp-for="VariantsJson" id="VariantsJson" />
+
+                            <h6 class="text-muted fw-semibold mb-3">1. Basic Information</h6>
+
+                            <div class="row mb-3">
+                                <label asp-for="Name" class="col-sm-2 col-form-label">Name <span class="text-danger">*</span></label>
+                                <div class="col-sm-10">
+                                    <input asp-for="Name" class="form-control" placeholder="e.g. Piqué Biker Jacket" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label asp-for="Description" class="col-sm-2 col-form-label">Description</label>
+                                <div class="col-sm-10">
+                                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter detailed product description..."></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label asp-for="Brand" class="col-sm-2 col-form-label">Brand <span class="text-danger">*</span></label>
+                                <div class="col-sm-10">
+                                    <input asp-for="Brand" class="form-control" placeholder="e.g. Levi's, Nike, Zara" />
+                                    <span asp-validation-for="Brand" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label asp-for="CategoryId" class="col-sm-2 col-form-label">Category <span class="text-danger">*</span></label>
+                                <div class="col-sm-10">
+                                    <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label asp-for="Price" class="col-sm-2 col-form-label">Price <span class="text-danger">*</span></label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" />
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+
+                                <label asp-for="DiscountPrice" class="col-sm-2 col-form-label">Discount Price</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="DiscountPrice" type="number" step="0.01" min="0.01" class="form-control" placeholder="Optional" />
+                                    </div>
+                                    <span asp-validation-for="DiscountPrice" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+                            <h6 class="text-muted fw-semibold mb-3">2. Images</h6>
+
+                            <div class="row mb-3">
+                                <label asp-for="MainImageFile" class="col-sm-2 col-form-label">Main Image <span class="text-danger">*</span></label>
+                                <div class="col-sm-10">
+                                    <input asp-for="MainImageFile" type="file" class="form-control" accept="image/*" />
+                                    <span asp-validation-for="MainImageFile" class="text-danger"></span>
+                                    <div class="form-text">Primary thumbnail displayed across catalog and product cards.</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label asp-for="GalleryFiles" class="col-sm-2 col-form-label">Gallery Images</label>
+                                <div class="col-sm-10">
+                                    <input asp-for="GalleryFiles" type="file" class="form-control" accept="image/*" multiple />
+                                    <span asp-validation-for="GalleryFiles" class="text-danger"></span>
+                                    <div class="form-text">Select multiple images for the product detail gallery.</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+                            <h6 class="text-muted fw-semibold mb-3">3. Product Variants (SKU, Size, Color &amp; Stock)</h6>
+
+                            <div class="card bg-lighter border mb-3">
+                                <div class="card-body">
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-md-3">
+                                            <label class="form-label small">Size <span class="text-danger">*</span></label>
+                                            <input type="text" id="variant-size" class="form-control form-control-sm" placeholder="e.g. S, M, L, XL" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small">Color <span class="text-danger">*</span></label>
+                                            <input type="text" id="variant-color" class="form-control form-control-sm" placeholder="e.g. Black, Navy, White" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small">SKU <span class="text-danger">*</span></label>
+                                            <input type="text" id="variant-sku" class="form-control form-control-sm" placeholder="e.g. JKT-BLK-M" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small">Stock <span class="text-danger">*</span></label>
+                                            <input type="number" id="variant-stock" min="0" class="form-control form-control-sm" placeholder="0" />
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" id="btn-add-variant" class="btn btn-primary btn-sm w-100">
+                                                <i class="bx bx-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="variant-error" class="text-danger small mt-2 d-none"></div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive mb-4">
+                                <table class="table table-bordered table-sm variant-table" id="variants-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Size</th>
+                                            <th>Color</th>
+                                            <th>SKU</th>
+                                            <th>Stock Quantity</th>
+                                            <th style="width: 70px;" class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="variants-table-body">
+                                        <tr id="no-variants-row">
+                                            <td colspan="5" class="text-center text-muted py-3">No variants added yet. Add at least one variant above.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <hr class="my-4" />
+                            <h6 class="text-muted fw-semibold mb-3">4. Visibility</h6>
+
+                            <div class="row mb-4">
+                                <label class="col-sm-2 col-form-label">Active</label>
+                                <div class="col-sm-10">
+                                    <div class="form-check form-switch mt-2">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" checked />
+                                        <label class="form-check-label" asp-for="IsActive">Publish product immediately</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row justify-content-end">
+                                <div class="col-sm-10">
+                                    <button type="submit" id="btn-submit" class="btn btn-primary me-2">Save Product</button>
+                                    <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+            var variants = [];
+
+            $('#btn-add-variant').on('click', function () {
+                var size = $.trim($('#variant-size').val());
+                var color = $.trim($('#variant-color').val());
+                var sku = $.trim($('#variant-sku').val());
+                var stock = parseInt($('#variant-stock').val(), 10);
+
+                var $error = $('#variant-error');
+                $error.addClass('d-none').text('');
+
+                if (!size || !color || !sku || isNaN(stock) || stock < 0) {
+                    $error.text('Please fill in Size, Color, SKU, and a valid non-negative Stock quantity.').removeClass('d-none');
+                    return;
+                }
+
+                var isDuplicateCombo = variants.some(function (v) {
+                    return v.size.toLowerCase() === size.toLowerCase() && v.color.toLowerCase() === color.toLowerCase();
+                });
+
+                if (isDuplicateCombo) {
+                    $error.text('A variant with this Size and Color combination already exists.').removeClass('d-none');
+                    return;
+                }
+
+                var isDuplicateSku = variants.some(function (v) {
+                    return v.sku.toLowerCase() === sku.toLowerCase();
+                });
+
+                if (isDuplicateSku) {
+                    $error.text('A variant with this SKU already exists in this list.').removeClass('d-none');
+                    return;
+                }
+
+                var item = {
+                    size: size,
+                    color: color,
+                    sku: sku,
+                    stockQuantity: stock
+                };
+
+                variants.push(item);
+                renderVariants();
+
+                $('#variant-size').val('');
+                $('#variant-color').val('');
+                $('#variant-sku').val('');
+                $('#variant-stock').val('');
+                $('#variant-size').focus();
+            });
+
+            $('#variants-table-body').on('click', '.btn-remove-variant', function () {
+                var index = $(this).data('index');
+                variants.splice(index, 1);
+                renderVariants();
+            });
+
+            function renderVariants() {
+                var $tbody = $('#variants-table-body');
+                $tbody.empty();
+
+                if (variants.length === 0) {
+                    $tbody.append('<tr id="no-variants-row"><td colspan="5" class="text-center text-muted py-3">No variants added yet. Add at least one variant above.</td></tr>');
+                    return;
+                }
+
+                $.each(variants, function (idx, v) {
+                    var row = '<tr>' +
+                        '<td>' + escapeHtml(v.size) + '</td>' +
+                        '<td>' + escapeHtml(v.color) + '</td>' +
+                        '<td><code>' + escapeHtml(v.sku) + '</code></td>' +
+                        '<td>' + v.stockQuantity + '</td>' +
+                        '<td class="text-center">' +
+                            '<button type="button" class="btn btn-xs btn-outline-danger btn-remove-variant" data-index="' + idx + '" title="Remove">' +
+                                '<i class="bx bx-trash"></i>' +
+                            '</button>' +
+                        '</td>' +
+                    '</tr>';
+                    $tbody.append(row);
+                });
+            }
+
+            $('#product-create-form').on('submit', function () {
+                $('#VariantsJson').val(JSON.stringify(variants));
+            });
+
+            function escapeHtml(text) {
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+        });
+    </script>
+}

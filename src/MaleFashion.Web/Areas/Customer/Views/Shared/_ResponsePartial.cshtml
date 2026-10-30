@@ -1,0 +1,15 @@
+﻿@using MaleFashion.Infrastructure.Extensions
+@using MaleFashion.Web.Codes
+@using MaleFashion.Web.Areas.Admin.Models
+@* 
+@{
+    var response = TempData.Get<ResponseModel>(Constants.ResponseTempKey);
+}
+
+@if (response != null)
+{
+    <div class="alert alert-@(response.Type.ToString().ToLower()) alert-dismissible" role="alert">
+        @response.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div> *@
+}

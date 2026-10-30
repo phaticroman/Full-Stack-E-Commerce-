@@ -1,0 +1,335 @@
+﻿@model MaleFashion.Web.Areas.Customer.Models.ShopIndexViewModel
+@{
+    ViewData["Title"] = "Shop";
+
+    var priceBuckets = new (decimal? From, decimal? To, string Label)[]
+    {
+        (0m, 50m, "$0.00 - $50.00"),
+        (50m, 100m, "$50.00 - $100.00"),
+        (100m, 150m, "$100.00 - $150.00"),
+        (150m, 200m, "$150.00 - $200.00"),
+        (200m, 250m, "$200.00 - $250.00"),
+        (250m, null, "$250.00+")
+    };
+
+    int pageSize = Model.Filter.PageSize <= 0 ? 9 : Model.Filter.PageSize;
+    int pageIndex = Model.Filter.PageIndex <= 0 ? 1 : Model.Filter.PageIndex;
+
+    string BuildUrl(Guid? categoryId = null, bool clearCategory = false,
+                    decimal? priceFrom = null, decimal? priceTo = null, bool clearPrice = false,
+                    string? size = null, bool clearSize = false,
+                    string? color = null, bool clearColor = false,
+                    string? sortBy = null, int? targetPageIndex = null)
+    {
+        return Url.Action("Index", "Shop", new
+        {
+            area = "Customer",
+            CategoryId = clearCategory ? null : (categoryId ?? Model.Filter.CategoryId),
+            SearchText = Model.Filter.SearchText,
+            PriceFrom = clearPrice ? null : (priceFrom ?? Model.Filter.PriceFrom),
+            PriceTo = clearPrice ? null : (priceTo ?? Model.Filter.PriceTo),
+            Size = clearSize ? null : (size ?? Model.Filter.Size),
+            Color = clearColor ? null : (color ?? Model.Filter.Color),
+            SortBy = sortBy ?? Model.Filter.SortBy,
+            PageIndex = targetPageIndex ?? 1
+        }) ?? "#";
+    }
+
+    var hasActiveFilters = Model.Filter.CategoryId.HasValue
+        || !string.IsNullOrWhiteSpace(Model.Filter.SearchText)
+        || Model.Filter.PriceFrom.HasValue
+        || Model.Filter.PriceTo.HasValue
+        || !string.IsNullOrWhiteSpace(Model.Filter.Size)
+        || !string.IsNullOrWhiteSpace(Model.Filter.Color)
+        || !string.IsNullOrWhiteSpace(Model.Filter.SortBy);
+
+    var showingFrom = Model.TotalItems == 0 ? 0 : ((pageIndex - 1) * pageSize) + 1;
+    var showingTo = Math.Min(pageIndex * pageSize, Model.TotalItems);
+}
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Shop</h4>
+                    <div class="breadcrumb__links">
+                        <a asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a>
+                        <span>Shop</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+<!-- Shop Section Begin -->
+<section class="shop spad">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Filter -->
+            <div class="col-lg-3">
+                <div class="shop__sidebar">
+                    @if (hasActiveFilters)
+                    {
+                        <div class="mb-4">
+                            <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="btn btn-sm btn-outline-dark w-100">
+                                <i class="fa fa-times me-1"></i> Clear All Filters
+                            </a>
+                        </div>
+                    }
+
+                    <div class="shop__sidebar__search">
+                        <form asp-area="Customer" asp-controller="Shop" asp-action="Index" method="get">
+                            <input type="text" name="SearchText" value="@Model.Filter.SearchText" placeholder="Search...">
+                            @if (Model.Filter.CategoryId.HasValue)
+                            {
+                                <input type="hidden" name="CategoryId" value="@Model.Filter.CategoryId" />
+                            }
+                            <button type="submit"><span class="icon_search"></span></button>
+                        </form>
+                    </div>
+
+                    <div class="shop__sidebar__accordion">
+                        <div class="accordion" id="accordionExample">
+
+                            <!-- Categories Filter -->
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseOne">Categories</a>
+                                </div>
+                                <div id="collapseOne" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories">
+                                            <ul class="nice-scroll">
+                                                <li>
+                                                    <a href="@BuildUrl(clearCategory: true)"
+                                                       class="@(Model.Filter.CategoryId == null ? "active" : "")">
+                                                        All Categories
+                                                    </a>
+                                                </li>
+                                                @foreach (var category in Model.Categories)
+                                                {
+                                                    var isCatActive = Model.Filter.CategoryId == category.Id;
+                                                    var count = Model.CategoryCounts != null && Model.CategoryCounts.ContainsKey(category.Id) ? Model.CategoryCounts[category.Id] : 0;
+                                                    <li>
+                                                        <a href="@BuildUrl(categoryId: category.Id)"
+                                                           class="@(isCatActive ? "active" : "")">
+                                                            @category.Name @(count > 0 ? $"({count})" : "")
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Price Filter -->
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseThree">Filter Price</a>
+                                </div>
+                                <div id="collapseThree" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__price">
+                                            <ul>
+                                                @foreach (var bucket in priceBuckets)
+                                                {
+                                                    var isPriceActive = Model.Filter.PriceFrom == bucket.From && Model.Filter.PriceTo == bucket.To;
+                                                    <li>
+                                                        <a href="@BuildUrl(priceFrom: bucket.From, priceTo: bucket.To)"
+                                                           class="@(isPriceActive ? "active" : "")">
+                                                            @bucket.Label
+                                                        </a>
+                                                    </li>
+                                                }
+                                                @if (Model.Filter.PriceFrom.HasValue || Model.Filter.PriceTo.HasValue)
+                                                {
+                                                    <li class="mt-2">
+                                                        <a href="@BuildUrl(clearPrice: true)" class="text-danger small font-weight-bold">
+                                                            <i class="fa fa-times"></i> Clear Price
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Size Filter -->
+                            @if (Model.AvailableSizes != null && Model.AvailableSizes.Count > 0)
+                            {
+                                <div class="card">
+                                    <div class="card-heading">
+                                        <a data-toggle="collapse" data-target="#collapseFour">Size</a>
+                                    </div>
+                                    <div id="collapseFour" class="collapse show" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            <div class="shop__sidebar__size">
+                                                @foreach (var size in Model.AvailableSizes)
+                                                {
+                                                    var isSizeActive = string.Equals(Model.Filter.Size, size, StringComparison.OrdinalIgnoreCase);
+                                                    <a href="@(isSizeActive ? BuildUrl(clearSize: true) : BuildUrl(size: size))" style="text-decoration:none;">
+                                                        <label class="@(isSizeActive ? "active" : "")">@size</label>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Color Filter -->
+                            @if (Model.AvailableColors != null && Model.AvailableColors.Count > 0)
+                            {
+                                <div class="card">
+                                    <div class="card-heading">
+                                        <a data-toggle="collapse" data-target="#collapseFive">Colors</a>
+                                    </div>
+                                    <div id="collapseFive" class="collapse show" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            <div class="shop__sidebar__color">
+                                                @foreach (var color in Model.AvailableColors)
+                                                {
+                                                    var isColorActive = string.Equals(Model.Filter.Color, color, StringComparison.OrdinalIgnoreCase);
+                                                    <a href="@(isColorActive ? BuildUrl(clearColor: true) : BuildUrl(color: color))"
+                                                       title="@color" style="text-decoration:none;">
+                                                        <label class="@(isColorActive ? "active" : "")"
+                                                               style="background-color: @color.ToLowerInvariant();"></label>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid Area -->
+            <div class="col-lg-9">
+                <div class="shop__product__option">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="shop__product__option__left">
+                                <p>Showing @showingFrom&ndash;@showingTo of @Model.TotalItems results</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="shop__product__option__right">
+                                <p>Sort by Price:</p>
+                                <select id="sort-select">
+                                    <option value="" selected="@(string.IsNullOrEmpty(Model.Filter.SortBy))">Newest</option>
+                                    <option value="price_asc" selected="@(Model.Filter.SortBy == "price_asc")">Low To High</option>
+                                    <option value="price_desc" selected="@(Model.Filter.SortBy == "price_desc")">High To Low</option>
+                                    <option value="name" selected="@(Model.Filter.SortBy == "name")">Name</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Grid (Exact MaleFashion Structure) -->
+                <div class="row">
+                    @if (Model.Products != null && Model.Products.Count > 0)
+                    {
+                        foreach (var product in Model.Products)
+                        {
+                            var hasDiscount = product.DiscountPrice.HasValue && product.DiscountPrice.Value < product.Price;
+                            var effectivePrice = product.DiscountPrice ?? product.Price;
+
+                            <div class="col-lg-4 col-md-6 col-sm-6">
+                                <div class="product__item @(hasDiscount ? "sale" : "")">
+                                    <div class="product__item__pic set-bg" data-setbg="@Url.Content("~/uploads/products/" + product.ImageName)">
+                                        @if (hasDiscount)
+                                        {
+                                            <span class="label">Sale</span>
+                                        }
+                                        <ul class="product__hover">
+                                            <li>
+                                                <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@product.Id">
+                                                    <img src="~/CustomerFrontend/img/icon/search.png" alt="">
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="product__item__text">
+                                        <h6>@product.Name</h6>
+                                        <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@product.Id" class="add-cart">
+                                            + View Details
+                                        </a>
+                                        <div class="rating">
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                        </div>
+                                        <h5>
+                                            @if (hasDiscount)
+                                            {
+                                                <span>@product.Price.ToString("C")</span>
+                                                @effectivePrice.ToString("C")
+                                            }
+                                            else
+                                            {
+                                                @product.Price.ToString("C")
+                                            }
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12 py-5 text-center">
+                            <h5 class="text-muted">No products found matching your filter criteria.</h5>
+                            <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn mt-3">Browse All Products</a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="product__pagination">
+                                @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+                                {
+                                    <a class="@(pageNumber == pageIndex ? "active" : "")"
+                                       href="@BuildUrl(targetPageIndex: pageNumber)">@pageNumber</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Shop Section End -->
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#sort-select').on('change', function () {
+                var url = new URL(window.location.href);
+                var val = $(this).val();
+                if (val) {
+                    url.searchParams.set('SortBy', val);
+                } else {
+                    url.searchParams.delete('SortBy');
+                }
+                url.searchParams.set('PageIndex', '1');
+                window.location.href = url.toString();
+            });
+        });
+    </script>
+}

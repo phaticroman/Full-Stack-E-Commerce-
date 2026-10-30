@@ -1,0 +1,371 @@
+﻿@model MaleFashion.Web.Areas.Customer.Models.HomeModel
+@{
+    ViewData["Title"] = "Home";
+    var newArrivalsCutoff = DateTime.UtcNow.AddDays(-14);
+}
+
+@section Styles {
+    <style>
+        /* Product Card Badges */
+        .badge-discount {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #e53637;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .badge-new {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #111111;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        /* Services & Trust Feature Section */
+        .services__item {
+            padding: 25px 20px;
+            border: 1px solid #f2f2f2;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .services__item:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            transform: translateY(-4px);
+        }
+
+        .services__item i {
+            color: #e53637;
+            margin-bottom: 15px;
+        }
+
+        .services__item h6 {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #111;
+        }
+
+        .services__item p {
+            margin-bottom: 0;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .categories__deal__countdown__timer .cd-item {
+            margin-bottom: 25px;
+        }
+    </style>
+}
+
+<!-- Hero Section Begin -->
+<section class="hero">
+    <div class="hero__slider owl-carousel">
+        <div class="hero__items set-bg" data-setbg="@Url.Content("~/CustomerFrontend/img/hero/hero-1.jpg")">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-5 col-lg-7 col-md-8">
+                        <div class="hero__text">
+                            <h6>Summer Collection</h6>
+                            <h2>Fall - Winter Collections 2030</h2>
+                            <p>
+                                A specialist label creating luxury essentials. Ethically crafted with an unwavering
+                                commitment to exceptional quality.
+                            </p>
+                            <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn">
+                                Shop now <span class="arrow_right"></span>
+                            </a>
+                            <div class="hero__social">
+                                <a href="#"><i class="fa fa-facebook"></i></a>
+                                <a href="#"><i class="fa fa-twitter"></i></a>
+                                <a href="#"><i class="fa fa-pinterest"></i></a>
+                                <a href="#"><i class="fa fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero__items set-bg" data-setbg="@Url.Content("~/CustomerFrontend/img/hero/hero-2.jpg")">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-5 col-lg-7 col-md-8">
+                        <div class="hero__text">
+                            <h6>Summer Collection</h6>
+                            <h2>Fall - Winter Collections 2030</h2>
+                            <p>
+                                A specialist label creating luxury essentials. Ethically crafted with an unwavering
+                                commitment to exceptional quality.
+                            </p>
+                            <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn">
+                                Shop now <span class="arrow_right"></span>
+                            </a>
+                            <div class="hero__social">
+                                <a href="#"><i class="fa fa-facebook"></i></a>
+                                <a href="#"><i class="fa fa-twitter"></i></a>
+                                <a href="#"><i class="fa fa-pinterest"></i></a>
+                                <a href="#"><i class="fa fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Hero Section End -->
+
+<!-- Banner Section Begin -->
+<section class="banner spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 offset-lg-4">
+                <div class="banner__item">
+                    <div class="banner__item__pic">
+                        <img src="~/CustomerFrontend/img/banner/banner-1.jpg" alt="Clothing Collections">
+                    </div>
+                    <div class="banner__item__text">
+                        <h2>Clothing Collections 2030</h2>
+                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index" asp-route-SearchText="Clothing">Shop now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="banner__item banner__item--middle">
+                    <div class="banner__item__pic">
+                        <img src="~/CustomerFrontend/img/banner/banner-2.jpg" alt="Accessories">
+                    </div>
+                    <div class="banner__item__text">
+                        <h2>Accessories</h2>
+                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index" asp-route-SearchText="Accessories">Shop now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="banner__item banner__item--last">
+                    <div class="banner__item__pic">
+                        <img src="~/CustomerFrontend/img/banner/banner-3.jpg" alt="Shoes Spring">
+                    </div>
+                    <div class="banner__item__text">
+                        <h2>Shoes Spring 2030</h2>
+                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index" asp-route-SearchText="Shoe">Shop now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Banner Section End -->
+
+<!-- Product Section Begin -->
+<section class="product spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <ul class="filter__controls">
+                    <li class="active" data-filter="*">Best Sellers</li>
+                    <li data-filter=".new-arrivals">New Arrivals</li>
+                    <li data-filter=".hot-sales">Hot Sales</li>
+                </ul>
+            </div>
+        </div>
+        <div class="row product__filter">
+            @if (Model.Products == null || Model.Products.Count == 0)
+            {
+                <div class="col-lg-12 text-center py-5">
+                    <p class="note">No products available yet.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var product in Model.Products)
+                {
+                    var hasDiscount = product.DiscountPrice.HasValue && product.DiscountPrice.Value < product.Price;
+                    var effectivePrice = product.DiscountPrice ?? product.Price;
+                    var isNewArrival = product.CreatedAt >= newArrivalsCutoff;
+
+                    var discountPercentage = hasDiscount
+                        ? (int)Math.Round((1 - (product.DiscountPrice!.Value / product.Price)) * 100)
+                        : 0;
+
+                    var mixClasses = "mix";
+                    if (isNewArrival) { mixClasses += " new-arrivals"; }
+                    if (hasDiscount) { mixClasses += " hot-sales"; }
+
+                    <div class="col-lg-3 col-md-6 col-sm-6 @mixClasses">
+                        <div class="product__item @(hasDiscount ? "sale" : "")">
+                            <div class="product__item__pic set-bg" data-setbg="@Url.Content("~/uploads/products/" + product.ImageName)">
+                                @if (hasDiscount)
+                                {
+                                    <span class="badge-discount">-@discountPercentage% OFF</span>
+                                }
+                                else if (isNewArrival)
+                                {
+                                    <span class="badge-new">New</span>
+                                }
+                                <ul class="product__hover">
+                                    <li>
+                                        <a href="javascript:void(0);" onclick="addToWishlist('@product.Id')" title="Add to Wishlist">
+                                            <img src="~/CustomerFrontend/img/icon/heart.png" alt="Wishlist">
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@product.Id" title="View Details">
+                                            <img src="~/CustomerFrontend/img/icon/search.png" alt="View">
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="product__item__text">
+                                <h6>@product.Name</h6>
+                                <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@product.Id" class="add-cart">
+                                    + View Details
+                                </a>
+                                <div class="rating">
+                                    @for (var i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fa fa-star@(i <= Math.Round(product.AverageRating) ? "" : "-o")"></i>
+                                    }
+                                </div>
+                                <h5>
+                                    @if (hasDiscount)
+                                    {
+                                        <span>@product.Price.ToString("C")</span>
+                                        @effectivePrice.ToString("C")
+                                    }
+                                    else
+                                    {
+                                        @product.Price.ToString("C")
+                                    }
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+<!-- Product Section End -->
+
+<!-- Deal of the Week Section Begin -->
+<section class="categories spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="categories__text">
+                    <h2>Clothings Hot <br /> <span>Shoe Collection</span> <br /> Accessories</h2>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="categories__hot__deal">
+                    <img src="~/CustomerFrontend/img/product-sale.png" alt="Deal of the week">
+                    <div class="hot__deal__sticker">
+                        <span>Sale Of</span>
+                        <h5>Special</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 offset-lg-1">
+                <div class="categories__deal__countdown">
+                    <span>Deal Of The Week</span>
+                    <h2>Exclusive Seasonal Discounts</h2>
+                    <div class="categories__deal__countdown__timer" id="countdown">
+                        <div class="cd-item"><span id="days">00</span> <p>Days</p></div>
+                        <div class="cd-item"><span id="hours">00</span> <p>Hours</p></div>
+                        <div class="cd-item"><span id="minutes">00</span> <p>Minutes</p></div>
+                        <div class="cd-item"><span id="seconds">00</span> <p>Seconds</p></div>
+                    </div>
+                    <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn">Shop now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Deal of the Week Section End -->
+
+<!-- Services & Trust Badges Section Begin -->
+<section class="services spad pt-0">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="services__item text-center">
+                    <i class="fa fa-truck fa-2x"></i>
+                    <h6>Free Shipping</h6>
+                    <p>Free standard delivery on all orders over $99</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="services__item text-center">
+                    <i class="fa fa-refresh fa-2x"></i>
+                    <h6>30-Day Returns</h6>
+                    <p>Hassle-free 30-day money-back guarantee</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="services__item text-center">
+                    <i class="fa fa-headphones fa-2x"></i>
+                    <h6>24/7 Dedicated Support</h6>
+                    <p>Instant support via live chat and email ticket</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="services__item text-center">
+                    <i class="fa fa-shield fa-2x"></i>
+                    <h6>Secure Payments</h6>
+                    <p>100% encrypted & protected checkout process</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Services Section End -->
+
+@section Scripts {
+    <script>
+        // Live Deal Countdown Timer (7 Days from load)
+        (function () {
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + 7);
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const difference = targetDate.getTime() - now;
+
+                if (difference > 0) {
+                    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                    document.getElementById("days").innerText = days.toString().padStart(2, '0');
+                    document.getElementById("hours").innerText = hours.toString().padStart(2, '0');
+                    document.getElementById("minutes").innerText = minutes.toString().padStart(2, '0');
+                    document.getElementById("seconds").innerText = seconds.toString().padStart(2, '0');
+                }
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        })();
+
+        // dummy function to simulate adding a product to the wishlist
+        function addToWishlist(productId) {
+            alert("Product added to your wishlist!");
+        }
+    </script>
+}

@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: src/MaleFashion.Web/Dockerfile
+    image: malefashion.web:latest
+    container_name: malefashion_web
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - src/MaleFashion.Web/web.env
+    volumes:
+      - ./volumes/logs:/app/Logs
+      - ./volumes/uploads:/app/wwwroot/uploads
+    ports:
+      - "8000:80"

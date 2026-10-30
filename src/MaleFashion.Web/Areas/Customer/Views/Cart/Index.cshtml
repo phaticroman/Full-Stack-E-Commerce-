@@ -1,0 +1,163 @@
+﻿@model MaleFashion.Application.DTOs.CartDto
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Shopping Cart</h4>
+                    <div class="breadcrumb__links">
+                        <a asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a>
+                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index">Shop</a>
+                        <span>Shopping Cart</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+<!-- Shopping Cart Section Begin -->
+<section class="shopping-cart spad">
+    <div class="container">
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (Model == null || Model.IsEmpty || Model.Items.Count == 0)
+        {
+            <div class="row">
+                <div class="col-lg-12 text-center py-5">
+                    <div class="mb-4">
+                        <i class="fa fa-shopping-cart fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="mb-2">Your cart is empty.</h4>
+                    <p class="text-muted mb-4">Explore our catalog and find the styles that suit you best.</p>
+                    <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn">Continue Shopping</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr id="cart-item-row-@item.Id">
+                                        <td class="product__cart__item">
+                                            <div class="product__cart__item__pic">
+                                                <img src="@Url.Content("~/uploads/products/" + (string.IsNullOrEmpty(item.ProductImage) ? "default.jpg" : item.ProductImage))"
+                                                     alt="@item.ProductName"
+                                                     style="width: 70px; height: 70px; object-fit: cover; border-radius: 4px;" />
+                                            </div>
+                                            <div class="product__cart__item__text">
+                                                <h6>
+                                                    <a asp-area="Customer" asp-controller="Shop" asp-action="Details" asp-route-id="@item.ProductVariantId">
+                                                        @item.ProductName
+                                                    </a>
+                                                </h6>
+                                                <p class="mb-1 text-muted small">
+                                                    Size: @item.Size &nbsp;|&nbsp; Color: @item.Color
+                                                </p>
+                                                <h5>@item.UnitPrice.ToString("C")</h5>
+                                            </div>
+                                        </td>
+                                        <td class="quantity__item">
+                                            <form asp-area="Customer" asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="d-flex align-items-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                <div class="quantity">
+                                                    <div class="pro-qty-2 d-flex align-items-center">
+                                                        <input type="number"
+                                                               name="quantity"
+                                                               value="@item.Quantity"
+                                                               min="1"
+                                                               max="@item.AvailableStock"
+                                                               class="form-control form-control-sm text-center"
+                                                               style="width: 60px;" />
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-sm btn-link ms-1 p-0 text-dark" title="Update quantity">
+                                                    <i class="fa fa-refresh"></i>
+                                                </button>
+                                            </form>
+                                            @if (item.AvailableStock < item.Quantity)
+                                            {
+                                                <small class="text-danger d-block mt-1">Only @item.AvailableStock left in stock</small>
+                                            }
+                                        </td>
+                                        <td class="cart__price">@item.TotalPrice.ToString("C")</td>
+                                        <td class="cart__close">
+                                            <form asp-area="Customer" asp-controller="Cart" asp-action="Remove" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-link p-0 text-dark"
+                                                        title="Remove item"
+                                                        onclick="return confirm('Remove this item from your cart?');">
+                                                    <i class="fa fa-close"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a asp-area="Customer" asp-controller="Shop" asp-action="Index">Continue Shopping</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="cart__total">
+                        <h6>Cart total</h6>
+                        <ul>
+                            <li>Subtotal <span>@Model.SubTotal.ToString("C")</span></li>
+                            <li>Total <span>@Model.SubTotal.ToString("C")</span></li>
+                        </ul>
+                        <a asp-area="Customer" asp-controller="Orders" asp-action="Checkout" class="primary-btn">Proceed to checkout</a>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</section>
+<!-- Shopping Cart Section End -->
+@section Scripts {
+    <script>
+        $(function () {
+            $('.quantity__item input[name="quantity"]').on('keypress', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $(this).closest('form').submit();
+                }
+            });
+        });
+    </script>
+}

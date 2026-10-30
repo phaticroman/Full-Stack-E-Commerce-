@@ -1,0 +1,205 @@
+﻿@model MaleFashion.Application.DTOs.PagedOrdersResultDto
+@using MaleFashion.Domain.Enums
+@{
+    ViewData["Title"] = "Orders Management";
+    var currentStatus = (OrderStatus?)ViewBag.CurrentStatus;
+    var currentSearch = (string?)ViewBag.CurrentSearch;
+}
+
+<div class="content-wrapper">
+    <div class="container-xxl flex-grow-1 container-p-y">
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold py-1 mb-0">
+                <span class="text-muted fw-light">Manage /</span> Orders
+            </h4>
+        </div>
+
+        <partial name="_ResponsePartial" />
+
+        <!-- Orders Table Card -->
+        <div class="card">
+            <!-- Header with Search & Filter -->
+            <div class="card-header border-bottom py-3">
+                <form method="get" class="row g-3 align-items-center">
+                    <!-- Status Filter Dropdown -->
+                    <div class="col-md-3 col-sm-6">
+                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">-- All Statuses --</option>
+                            @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                            {
+                                <option value="@s" selected="@(currentStatus == s ? "selected" : null)">@s</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="col-md-5 col-sm-6">
+                        <div class="input-group input-group-sm">
+                            <input type="text"
+                                   name="search"
+                                   class="form-control"
+                                   placeholder="Search by order ID, customer name, email..."
+                                   value="@currentSearch" />
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bx bx-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reset Filter Button -->
+                    @if (!string.IsNullOrWhiteSpace(currentSearch) || currentStatus.HasValue)
+                    {
+                        <div class="col-md-2 col-sm-6">
+                            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="bx bx-x me-1"></i> Clear Filter
+                            </a>
+                        </div>
+                    }
+                </form>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-responsive text-nowrap">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer Details</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="text-center" style="width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var order in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="fw-bold text-primary">
+                                            #@order.Id.ToString().Substring(0, 8).ToUpper()
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold">@order.CustomerName</span>
+                                            <small class="text-muted">@order.CustomerEmail</small>
+                                        </div>
+                                    </td>
+                                    <td>@order.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                    <td>
+                                        <span class="badge bg-label-secondary">@order.ItemCount Items</span>
+                                    </td>
+                                    <td>
+                                        <strong>@order.Total.ToString("C")</strong>
+                                    </td>
+                                    <td>
+                                        @switch (order.Status)
+                                        {
+                                            case OrderStatus.Pending:
+                                                <span class="badge bg-label-warning">Pending</span>
+                                                break;
+                                            
+                                                break;
+                                            case OrderStatus.Shipped:
+                                                <span class="badge bg-label-primary">Shipped</span>
+                                                break;
+                                            case OrderStatus.Delivered:
+                                                <span class="badge bg-label-success">Delivered</span>
+                                                break;
+                                            case OrderStatus.Cancelled:
+                                                <span class="badge bg-label-danger">Cancelled</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-label-secondary">@order.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                           class="btn btn-sm btn-icon btn-outline-secondary"
+                                           title="View Details">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bx bx-package fs-1 d-block mb-2 text-secondary"></i>
+                                    No orders found matching the criteria.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                    <small class="text-muted">
+                        Showing page <strong>@Model.PageIndex</strong> of <strong>@Model.TotalPages</strong>
+                        (Total <strong>@Model.TotalCount</strong> orders)
+                    </small>
+
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- Previous Page -->
+                            <li class="page-item @(Model.PageIndex == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Admin"
+                                   asp-controller="Orders"
+                                   asp-action="Index"
+                                   asp-route-page="@(Model.PageIndex - 1)"
+                                   asp-route-search="@currentSearch"
+                                   asp-route-status="@currentStatus">
+                                    <i class="bx bx-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Page Numbers -->
+                            @for (int p = 1; p <= Model.TotalPages; p++)
+                            {
+                                <li class="page-item @(p == Model.PageIndex ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="Admin"
+                                       asp-controller="Orders"
+                                       asp-action="Index"
+                                       asp-route-page="@p"
+                                       asp-route-search="@currentSearch"
+                                       asp-route-status="@currentStatus">
+                                        @p
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Next Page -->
+                            <li class="page-item @(Model.PageIndex == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Admin"
+                                   asp-controller="Orders"
+                                   asp-action="Index"
+                                   asp-route-page="@(Model.PageIndex + 1)"
+                                   asp-route-search="@currentSearch"
+                                   asp-route-status="@currentStatus">
+                                    <i class="bx bx-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

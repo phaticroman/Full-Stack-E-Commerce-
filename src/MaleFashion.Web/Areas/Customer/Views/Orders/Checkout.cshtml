@@ -1,0 +1,156 @@
+﻿@model MaleFashion.Web.Areas.Customer.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Check Out";
+}
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Check Out</h4>
+                    <div class="breadcrumb__links">
+                        <a asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a>
+                        <a asp-area="Customer" asp-controller="Cart" asp-action="Index">Shopping Cart</a>
+                        <span>Check Out</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+<!-- Checkout Section Begin -->
+<section class="checkout spad">
+    <div class="container">
+        <div class="checkout__form">
+            <form asp-area="Customer" asp-controller="Orders" asp-action="Checkout" method="post">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Notice:</strong> Please fix the errors below and try again.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="row">
+                    <!-- Left Column: Shipping & Delivery Form -->
+                    <div class="col-lg-8 col-md-6">
+                        <h6 class="checkout__title">Shipping & Contact Details</h6>
+
+                        <div class="checkout__input">
+                            <p>Full Name<span>*</span></p>
+                            <input asp-for="Command.ShippingFullName" placeholder="e.g. John Doe" required />
+                            <span asp-validation-for="Command.ShippingFullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="checkout__input">
+                                    <p>Phone Number<span>*</span></p>
+                                    <input asp-for="Command.ShippingPhone" placeholder="e.g. +880 1700-000000" required />
+                                    <span asp-validation-for="Command.ShippingPhone" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="checkout__input">
+                                    <p>Email Address<span>*</span></p>
+                                    <input asp-for="Command.ShippingEmail" type="email" placeholder="e.g. example@gmail.com" required />
+                                    <span asp-validation-for="Command.ShippingEmail" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="checkout__input">
+                                    <p>Town / City<span>*</span></p>
+                                    <input asp-for="Command.ShippingCity" placeholder="e.g. Dhaka" required />
+                                    <span asp-validation-for="Command.ShippingCity" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="checkout__input">
+                                    <p>Postal Code / ZIP<span>*</span></p>
+                                    <input asp-for="Command.ShippingPostalCode" placeholder="e.g. 1205" required />
+                                    <span asp-validation-for="Command.ShippingPostalCode" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="checkout__input__checkbox mt-3">
+                            <label for="acc">
+                                Note: Payment is collected via <strong>Cash on Delivery (COD)</strong> upon product receipt.
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Order Summary -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="checkout__order">
+                            <h4 class="order__title">Your order</h4>
+                            <div class="checkout__order__products">Product <span>Total</span></div>
+
+                            <ul class="checkout__total__products">
+                                @if (Model.Cart != null && Model.Cart.Items.Any())
+                                {
+                                    @for (int i = 0; i < Model.Cart.Items.Count; i++)
+                                    {
+                                        var item = Model.Cart.Items[i];
+                                        <li>
+                                            @(i + 1). @item.ProductName (@item.Size / @item.Color) x @item.Quantity
+                                            <span>@item.TotalPrice.ToString("C")</span>
+                                        </li>
+                                    }
+                                }
+                                else
+                                {
+                                    <li class="text-muted">No items in cart</li>
+                                }
+                            </ul>
+
+                            <ul class="checkout__total__all">
+                                <li>
+                                    Subtotal
+                                    <span>@Model.Subtotal.ToString("C")</span>
+                                </li>
+                                <li>
+                                    Shipping
+                                    <span>
+                                        @(Model.ShippingFee == 0m ? "Free" : Model.ShippingFee.ToString("C"))
+                                    </span>
+                                </li>
+                                <li>
+                                    Total
+                                    <span class="text-danger font-weight-bold">@Model.GrandTotal.ToString("C")</span>
+                                </li>
+                            </ul>
+
+                            @if (Model.Subtotal < 100.00m && Model.Subtotal > 0m)
+                            {
+                                <p class="text-muted small mt-2">
+                                    <i class="fa fa-info-circle text-info"></i> Add <strong>@((100.00m - Model.Subtotal).ToString("C"))</strong> more to qualify for <strong>FREE Shipping</strong>!
+                                </p>
+                            }
+                            else if (Model.Subtotal >= 100.00m)
+                            {
+                                <p class="text-success small mt-2">
+                                    <i class="fa fa-check-circle"></i> Congratulations! You unlocked <strong>FREE Shipping</strong>.
+                                </p>
+                            }
+
+                            <button type="submit" class="site-btn">PLACE ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+<!-- Checkout Section End -->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

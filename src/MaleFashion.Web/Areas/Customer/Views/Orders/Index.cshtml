@@ -1,0 +1,134 @@
+﻿@model IList<MaleFashion.Application.DTOs.OrderDto>
+@using MaleFashion.Domain.Enums
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>My Orders</h4>
+                    <div class="breadcrumb__links">
+                        <a asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a>
+                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index">Shop</a>
+                        <span>My Orders</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+
+<!-- Orders Section Begin -->
+<section class="shopping-cart spad">
+    <div class="container">
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="row">
+                <div class="col-lg-12 text-center py-5">
+                    <div class="mb-4">
+                        <i class="fa fa-folder-open-o fa-4x text-muted"></i>
+                    </div>
+                    <h4>You haven't placed any orders yet.</h4>
+                    <p class="text-muted mt-2 mb-4">Explore our latest collections and start shopping today!</p>
+                    <a asp-area="Customer" asp-controller="Shop" asp-action="Index" class="primary-btn">Start Shopping</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="py-3 px-4">Order ID</th>
+                                            <th class="py-3">Date</th>
+                                            <th class="py-3">Items</th>
+                                            <th class="py-3">Total Amount</th>
+                                            <th class="py-3">Status</th>
+                                            <th class="py-3 text-end px-4">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var order in Model)
+                                        {
+                                            <tr>
+                                                <td class="px-4 fw-bold">
+                                                    #@order.Id.ToString()[..8].ToUpper()
+                                                </td>
+                                                <td>@order.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                                <td>@order.Items.Sum(i => i.Quantity) items</td>
+                                                <td class="fw-bold text-dark">@order.Total.ToString("C")</td>
+                                                <td>
+                                                    @switch (order.Status)
+                                                    {
+                                                        case OrderStatus.Pending:
+                                                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">Pending</span>
+                                                            break;
+                                                        case OrderStatus.Confirmed:
+                                                            <span class="badge bg-info text-dark px-3 py-2 rounded-pill">Confirmed</span>
+                                                            break;
+                                                        case OrderStatus.Shipped:
+                                                            <span class="badge bg-primary px-3 py-2 rounded-pill">Shipped</span>
+                                                            break;
+                                                        case OrderStatus.Delivered:
+                                                            <span class="badge bg-success px-3 py-2 rounded-pill">Delivered</span>
+                                                            break;
+                                                        case OrderStatus.Cancelled:
+                                                            <span class="badge bg-danger px-3 py-2 rounded-pill">Cancelled</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary px-3 py-2 rounded-pill">@order.Status</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                                <td class="text-end px-4">
+    <div class="d-inline-flex gap-2">
+        <a asp-area="Customer" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-dark">
+            View Details
+        </a>
+        @if (order.Status == OrderStatus.Pending)
+        {
+            <form asp-area="Customer" asp-controller="Orders" asp-action="Cancel" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@order.Id" />
+                <button type="submit" 
+                        class="btn btn-sm btn-outline-danger" 
+                        title="Cancel Order"
+                        onclick="return confirm('Cancel order #@order.Id.ToString()[..8].ToUpper()?');">
+                    Cancel
+                </button>
+            </form>
+        }
+    </div>
+</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+<!-- Orders Section End -->

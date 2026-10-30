@@ -1,0 +1,142 @@
+﻿@model MaleFashion.Application.DTOs.DashboardStatsDto
+@using MaleFashion.Domain.Enums
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="content-wrapper">
+    <div class="container-xxl flex-grow-1 container-p-y">
+        
+        <!-- Top Metrics Cards -->
+        <div class="row">
+            <!-- Total Sales -->
+            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-success p-2">
+                                    <i class="bx bx-dollar fs-4"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Total Sales</span>
+                        <h3 class="card-title mb-2">@Model.TotalSales.ToString("C")</h3>
+                        <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i> Completed & Active Revenue</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Orders -->
+            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-primary p-2">
+                                    <i class="bx bx-shopping-bag fs-4"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Total Orders</span>
+                        <h3 class="card-title mb-2">@Model.TotalOrders</h3>
+                        <small class="text-muted">All-time store orders</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Products -->
+            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-info p-2">
+                                    <i class="bx bx-closet fs-4"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="fw-semibold d-block mb-1">Active Products</span>
+                        <h3 class="card-title mb-2">@Model.TotalProducts</h3>
+                        <small class="text-info fw-semibold">Currently visible in shop</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders Section -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title m-0">Recent Orders</h5>
+                        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-primary">View All Orders</a>
+                    </div>
+                    <div class="table-responsive text-nowrap">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Date</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-border-bottom-0">
+                                @if (Model.RecentOrders != null && Model.RecentOrders.Any())
+                                {
+                                    foreach (var order in Model.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>#@order.Id.ToString().Substring(0, 8).ToUpper()</strong>
+                                            </td>
+                                            <td>@order.ShippingFullName</td>
+                                            <td>@order.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                            <td>@order.Total.ToString("C")</td>
+                                            <td>
+                                                @switch (order.Status)
+                                                {
+                                                    case OrderStatus.Pending:
+                                                        <span class="badge bg-label-warning">Pending</span>
+                                                        break;
+                                                    
+                                                    case OrderStatus.Shipped:
+                                                        <span class="badge bg-label-primary">Shipped</span>
+                                                        break;
+                                                    case OrderStatus.Delivered:
+                                                        <span class="badge bg-label-success">Delivered</span>
+                                                        break;
+                                                    case OrderStatus.Cancelled:
+                                                        <span class="badge bg-label-danger">Cancelled</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-label-secondary">@order.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-icon btn-outline-secondary" title="View Order Details">
+                                                    <i class="bx bx-show"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No recent orders found.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

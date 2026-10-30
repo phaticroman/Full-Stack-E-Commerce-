@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MaleFashion.Web</title>
+    <link rel="stylesheet" href="~/CustomerFrontend/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="~/CustomerFrontend/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="~/CustomerFrontend/css/style.css" />
+
+</head>
+<body>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <script src="~/CustomerFrontend/js/jquery-3.3.1.min.js"></script>
+    <script src="~/CustomerFrontend/js/bootstrap.min.js"></script>
+    <script src="~/CustomerFrontend/js/main.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
